@@ -9,17 +9,14 @@ function removeFromArray(arr, elt) {
 function heuristic(a, b) {
   // // Heuristica normal que compara uma diagonal igual ao passo para os lados
   var d = abs(a.i - b.i) + abs(a.j - b.j);
-
-  // //Heuristica euclidiana
-  // var d = dist(a.i, a.j, b.i, b.j)
   return d;
 }
 
 var allowDiagonal = false
 
-var cols = 120
-var rows = 80
-var wallspercentil = 0.35
+var cols = 64
+var rows = 64
+var wallspercentil = 0.40
 var grid = new Array(cols)
 
 var openSet = []
@@ -30,7 +27,8 @@ var w, h;
 var path = [];
 var noSolution = false;
 
-function Spot(i, j) {
+function Spot(i, j, color) {
+  this.color = color
   this.i = i;
   this.j = j;
   this.f = 0;
@@ -40,20 +38,35 @@ function Spot(i, j) {
   this.previus = undefined
   this.wall = false;
 
-  if (random(1) < wallspercentil) {
-    this.wall = true;
+  // Parede
+  if (this.color === 'rgb(0, 0, 0)') {
+    this.wall = true
   }
 
-  this.show = function (col) {
-    if (this.wall) {
-      col = color(0)
+  // Start
+  if (this.color === 'rgb(255, 242, 0)') {
+    start = grid[this.j][this.i]
+    console.log('Start achado: ', grid[this.j][this.i])
+  }
+
+  // Goal
+  if (this.color === 'rgb(237, 28, 36)') {
+    end = grid[this.j][this.i]
+    console.log('End achado: ', grid[this.j][this.i])
+  }
+
+  // Show
+  this.show = function (color) {
+    if (color == undefined) {
+      fill(this.color)
+    } else {
+      fill(color)
     }
-    fill(col)
-
     noStroke()
-    rect(this.i * w, this.j * h, w - 1, h - 1)
+    rect((this.j * 10), (this.i * 10), 10, 10)
   }
 
+  // Add vizinhos
   this.addNeighbors = function () {
     if (i < cols - 1)
       this.neighbors.push(grid[this.i + 1][j])
@@ -80,7 +93,7 @@ function Spot(i, j) {
 
 function setup() {
 
-  createCanvas(1200, 800)
+  createCanvas(640, 640)
 
   w = width / cols;
   h = height / rows;
@@ -90,130 +103,145 @@ function setup() {
     grid[i] = new Array(rows);
   }
 
-  // Criando um novo spot para cada parte do grid
-  for (var i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
-      grid[i][j] = new Spot(i, j);
+  var image = new Image();
+  image.src = 'maze.png';
+
+  image.onload = function () {
+    var canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    rows = canvas.width
+    cols = canvas.height
+
+    var context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        var pixelData = context.getImageData(j, i, 1, 1).data;
+        var color = 'rgb(' + pixelData[0] + ', ' + pixelData[1] + ', ' + pixelData[2] + ')';
+        grid[i][j] = new Spot(i, j, color);
+      }
     }
-  }
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Adicionando os vizinhos aos spots
-  for (var i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
-      grid[i][j].addNeighbors()
+    // Adicionando os vizinhos aos spots
+    for (var i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        grid[i][j].addNeighbors()
+      }
     }
+
+    // adicionado o start ao openSet
+    start = grid[1][1]
+    end = grid[rows - 2][rows - 2]
+    openSet.push(start)
   }
-
-  // iniciando as localizacoes de start e end
-  start = grid[0][0];
-  start.wall = false
-  end = grid[cols - 1][rows - 1]
-  end.wall = false
-
-  // adicionado o start ao openSet
-  openSet.push(start)
 }
 
 function draw() {
 
-  if (openSet.length > 0) {
-    // continuar buscando
+  if (grid[0][0] != undefined) {
+    // console.log(openSet)
+    if (openSet.length > 0) {
+      // continuar buscando
 
-    // encontra o melhor spot até agora
-    var winner = 0;
-    for (var i = 0; i < openSet.length; i++) {
-      if (openSet[i].f < openSet[winner].f) {
-        winner = i
+      // encontra o melhor spot até agora
+      var winner = 0;
+      for (var i = 0; i < openSet.length; i++) {
+        if (openSet[i].f < openSet[winner].f) {
+          winner = i
+        }
       }
-    }
 
-    var current = openSet[winner]
+      var current = openSet[winner]
 
-    // Caso o winner seja o final, finaliza a busca
-    if (openSet[winner] === end) {
+      // Caso o winner seja o final, finaliza a busca
+      if (openSet[winner] === end) {
 
-      // Para o Loop
-      noLoop();
-      console.log('Done!!')
-    }
+        // Para o Loop
+        noLoop();
+        console.log('Done!!')
+      }
 
-    // Remove current do openset e adiciona ao closedset
-    removeFromArray(openSet, current)
-    closedSet.push(current)
+      // Remove current do openset e adiciona ao closedset
+      removeFromArray(openSet, current)
+      closedSet.push(current)
 
-    // Varre os vizinhos para encontrar seu g (preço de caminho)
-    var neighbors = current.neighbors;
-    for (var i = 0; i < neighbors.length; i++) {
-      var neighbor = neighbors[i]
+      // Varre os vizinhos para encontrar seu g (preço de caminho)
+      var neighbors = current.neighbors;
+      for (var i = 0; i < neighbors.length; i++) {
+        var neighbor = neighbors[i]
 
-      // Avalia se o vizinho atual já nao foi visitado
-      if (!closedSet.includes(neighbor) && !neighbor.wall) {
-        // Captura o G do atual e adiciona 1
-        var tempG = current.g + 1;
+        // Avalia se o vizinho atual já nao foi visitado
+        if (!closedSet.includes(neighbor) && !neighbor.wall) {
+          // Captura o G do atual e adiciona 1
+          var tempG = current.g + 1;
 
-        var newPath = false;
+          var newPath = false;
 
-        // Avalia se o G atual é melhor que o já encontrado
-        if (openSet.includes(neighbor)) {
-          if (tempG < neighbor.g) {
+          // Avalia se o G atual é melhor que o já encontrado
+          if (openSet.includes(neighbor)) {
+            if (tempG < neighbor.g) {
+              neighbor.g = tempG;
+              newPath = true;
+            }
+
+            // Caso o vizinho nao tenha sido visitado ainda, é salvo diretamente no openset
+          } else {
             neighbor.g = tempG;
             newPath = true;
+            openSet.push(neighbor)
           }
 
-          // Caso o vizinho nao tenha sido visitado ainda, é salvo diretamente no openset
-        } else {
-          neighbor.g = tempG;
-          newPath = true;
-          openSet.push(neighbor)
+          if (newPath) {
+            neighbor.h = heuristic(neighbor, end)
+            neighbor.f = neighbor.g + neighbor.h
+            neighbor.previus = current;
+          }
         }
 
-        if (newPath) {
-          neighbor.h = heuristic(neighbor, end)
-          neighbor.f = neighbor.g + neighbor.h
-          neighbor.previus = current;
-        }
       }
 
+    } else {
+      // sem solucao
+      console.log('Sem Solucao!')
+      noSolution = true;
+      noLoop();
+      return;
     }
 
-  } else {
-    // sem solucao
-    console.log('Sem Solucao!')
-    noSolution = true;
-    noLoop();
-    return;
-  }
-
-  for (var i = 0; i < cols; i++) {
-    for (var j = 0; j < rows; j++) {
-      grid[i][j].show(color(255));
+    for (var i = 0; i < cols; i++) {
+      for (var j = 0; j < rows; j++) {
+        grid[i][j].show();
+      }
     }
+
+    // Mostra os vizinhos ja vistos (Vermelho)
+    for (var i = 0; i < closedSet.length; i++) {
+      closedSet[i].show(color(255, 0, 0))
+    }
+
+    // Mostra os proximos vizinhos a serem vistos (Verde)
+    for (var i = 0; i < openSet.length; i++) {
+      openSet[i].show(color(0, 255, 0))
+    }
+
+    // Captura o caminho
+    path = []
+    var temp = current;
+    while (temp.previus) {
+      path.push(temp.previus)
+      temp = temp.previus
+    }
+
+    // Mostra o melhor caminho atual (Azul)
+    for (var i = 0; i < path.length; i++) {
+      path[i].show(color(0, 0, 255))
+    }
+
+    end.show()
+    start.show()
   }
-
-  // Mostra os vizinhos ja vistos (Vermelho)
-  for (var i = 0; i < closedSet.length; i++) {
-    closedSet[i].show(color(255, 0, 0))
-  }
-
-  // Mostra os proximos vizinhos a serem vistos (Verde)
-  for (var i = 0; i < openSet.length; i++) {
-    openSet[i].show(color(0, 255, 0))
-  }
-
-  // Captura o caminho
-  path = []
-  var temp = current;
-  while (temp.previus) {
-    path.push(temp.previus)
-    temp = temp.previus
-  }
-
-  // Mostra o melhor caminho atual (Azul)
-  for (var i = 0; i < path.length; i++) {
-    path[i].show(color(0, 0, 255))
-  }
-
-  end.show(color(255, 50, 150))
-  start.show(color(255, 25, 50))
-
 }
