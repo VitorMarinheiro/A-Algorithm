@@ -1,6 +1,6 @@
 # A* Search
 
-![](https://github.com/VitorMarinheiro/A-Star-Algorithm/readmegif.gif)
+![](https://github.com/VitorMarinheiro/A-Star-Algorithm/blob/main/readmegif.gif)
 
 ## Execução
 Para iniciar a execução basta executar o seguinte comando:
