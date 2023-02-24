@@ -22,6 +22,20 @@ const server = http.createServer((req, res) => {
         res.end(content);
       }
     });
+  } else if (req.url === '/rand') {
+    // Serve the index.html file
+    const filePath = path.join(__dirname, 'index_rand.html');
+    fs.readFile(filePath, 'utf-8', (err, content) => {
+      if (err) {
+        console.error(err);
+        res.statusCode = 500;
+        res.end();
+      } else {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html');
+        res.end(content);
+      }
+    });
   } else {
     // Serve a static file
     const filePath = path.join(__dirname, req.url);

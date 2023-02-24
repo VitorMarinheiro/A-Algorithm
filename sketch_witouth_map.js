@@ -18,7 +18,7 @@ function removeFromArray(arr, elt) {
   var allowDiagonal = false
   
   var cols = 120
-  var rows = 80
+  var rows = 70
   var wallspercentil = 0.35
   var grid = new Array(cols)
   
@@ -80,7 +80,7 @@ function removeFromArray(arr, elt) {
   
   function setup() {
   
-    createCanvas(1200, 800)
+    createCanvas(1200, 700)
   
     w = width / cols;
     h = height / rows;
