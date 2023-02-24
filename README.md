@@ -1,4 +1,5 @@
 # A* Search
+A* é um algoritmo de busca, ou uma busca do melhor primeiro caminho, o que significa que é formulado em termos de grafos ponderados: partindo de um nó inicial específico de um grafo, ele visa encontrar um caminho para o nó objetivo dado com o menor custo (menor distância percorrida, menor tempo, etc.).
 
 ![](https://github.com/VitorMarinheiro/A-Star-Algorithm/blob/main/readmegif.gif)
 
