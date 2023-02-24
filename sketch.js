@@ -104,7 +104,7 @@ function setup() {
   }
 
   var image = new Image();
-  image.src = 'maze.png';
+  image.src = '/mazes/maze.png';
 
   image.onload = function () {
     var canvas = document.createElement('canvas');
@@ -178,7 +178,6 @@ function draw() {
         if (!closedSet.includes(neighbor) && !neighbor.wall) {
           // Captura o G do atual e adiciona 1
           var tempG = current.g + 1;
-
           var newPath = false;
 
           // Avalia se o G atual é melhor que o já encontrado
